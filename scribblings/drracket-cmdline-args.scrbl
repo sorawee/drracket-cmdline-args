@@ -24,4 +24,4 @@ the background color of the text field will turn red, and
 
 @(define-runtime-path screenshot "screenshot.png")
 
-@image[screenshot]{The screenshot of drracket-cmdline-args}
+@image[screenshot]{The screenshot of the plugin}

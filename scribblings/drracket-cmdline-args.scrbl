@@ -16,7 +16,7 @@ the interactions window.
 The current limitation of this plugin is that it only works with @hash-lang[]
 languages. It will not work with HtDP languages, for example.
 The background color of the text field will turn yellow to warn that
-the command-line arguments have no effect in that language.
+the command-line arguments have no effect in this case.
 
 When there is a syntax error (unterminated quote or escape code),
 the background color of the text field will turn red, and

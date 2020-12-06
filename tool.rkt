@@ -129,7 +129,8 @@
                (set! text-field #f))]))
 
         (define/augment (on-tab-change _1 _2)
-          (update-text-field!))
+          (when (preferences:get DRRACKET-CMDLINE-ARGS:SHOW)
+            (update-text-field!)))
 
         (define/override (get-definitions/interactions-panel-parent)
           (set! container (super get-definitions/interactions-panel-parent))

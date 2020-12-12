@@ -30,10 +30,6 @@
       "firebrick"
       "pink"))
 
-(define container #f)
-(define menu-item #f)
-(define text-field #f)
-
 (define tool@
   (unit
     (import drracket:tool^)
@@ -44,6 +40,13 @@
 
     (define unit-frame-mixin
       (mixin (drracket:unit:frame<%>) ()
+
+        (define menu-item #f)
+        (define text-field #f)
+        (define container #f)
+        (define show? (preferences:get DRRACKET-CMDLINE-ARGS:SHOW))
+        (define value (preferences:get DRRACKET-CMDLINE-ARGS:VALUE))
+
         (super-new)
         (inherit get-show-menu
                  get-definitions-text)
@@ -94,6 +97,7 @@
 
         (define/private (update-text-field!)
           (define s (send text-field get-value))
+          (set! value s)
           (preferences:set DRRACKET-CMDLINE-ARGS:VALUE s)
           (with-handlers ([exn:fail:read:eof?
                            (λ (ex)
@@ -107,30 +111,32 @@
 
         (define/private (update-gui!)
           (send menu-item set-label
-                (if (preferences:get DRRACKET-CMDLINE-ARGS:SHOW)
+                (if show?
                     "Hide Command-Line Arguments"
                     "Show Command-Line Arguments"))
 
           (cond
-            [(preferences:get DRRACKET-CMDLINE-ARGS:SHOW)
-             (set! text-field
-                   (new text-field%
-                        [label "Command-line arguments"]
-                        [parent container]
-                        [init-value (preferences:get DRRACKET-CMDLINE-ARGS:VALUE)]
-                        [callback
-                         (λ (t e) (update-text-field!))]))
-             (send container change-children
-                   (λ (xs) (cons text-field (remove text-field xs))))
-             (update-text-field!)]
+            [show?
+             (unless text-field
+               (set! text-field
+                     (new text-field%
+                          [label "Command-line arguments"]
+                          [parent container]
+                          [init-value value]
+                          [callback
+                           (λ (t e) (update-text-field!))]))
+               (send container change-children
+                     (λ (xs) (cons text-field (remove text-field xs))))
+               (update-text-field!))]
             [else
              (when text-field
                (send container delete-child text-field)
                (set! text-field #f))]))
 
+        ;; we can potentially switch to non-module tab, so we need to update
+        ;; the text field background
         (define/augment (on-tab-change _1 _2)
-          (when (preferences:get DRRACKET-CMDLINE-ARGS:SHOW)
-            (update-text-field!)))
+          (when show? (update-text-field!)))
 
         (define/override (get-definitions/interactions-panel-parent)
           (set! container (super get-definitions/interactions-panel-parent))
@@ -139,10 +145,8 @@
                      [label ""]
                      [callback
                       (λ (c e)
-                        (cond
-                          [(preferences:get DRRACKET-CMDLINE-ARGS:SHOW)
-                           (preferences:set DRRACKET-CMDLINE-ARGS:SHOW #f)]
-                          [else (preferences:set DRRACKET-CMDLINE-ARGS:SHOW #t)])
+                        (set! show? (not show?))
+                        (preferences:set DRRACKET-CMDLINE-ARGS:SHOW show?)
                         (update-gui!))]
                      [parent (get-show-menu)]))
           (update-gui!)

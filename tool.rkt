@@ -41,15 +41,12 @@
     (define unit-frame-mixin
       (mixin (drracket:unit:frame<%>) ()
 
-        (define menu-item #f)
         (define text-field #f)
-        (define container #f)
         (define show? (preferences:get DRRACKET-CMDLINE-ARGS:SHOW))
         (define value (preferences:get DRRACKET-CMDLINE-ARGS:VALUE))
 
         (super-new)
-        (inherit get-show-menu
-                 get-definitions-text)
+        (inherit get-show-menu get-definitions-text)
 
         (define/private (update-config! xs)
           (match-define (drracket:language-configuration:language-settings language settings)
@@ -109,12 +106,7 @@
             (send text-field set-field-background #f)
             (update-config! xs)))
 
-        (define/private (update-gui!)
-          (send menu-item set-label
-                (if show?
-                    "Hide Command-Line Arguments"
-                    "Show Command-Line Arguments"))
-
+        (define/private (update-gui! container)
           (cond
             [show?
              (unless text-field
@@ -123,8 +115,7 @@
                           [label "Command-line arguments"]
                           [parent container]
                           [init-value value]
-                          [callback
-                           (λ (t e) (update-text-field!))]))
+                          [callback (λ (t e) (update-text-field!))]))
                (send container change-children
                      (λ (xs) (cons text-field (remove text-field xs))))
                (update-text-field!))]
@@ -139,17 +130,22 @@
           (when show? (update-text-field!)))
 
         (define/override (get-definitions/interactions-panel-parent)
-          (set! container (super get-definitions/interactions-panel-parent))
-          (set! menu-item
-                (new menu-item%
-                     [label ""]
-                     [callback
-                      (λ (c e)
-                        (set! show? (not show?))
-                        (preferences:set DRRACKET-CMDLINE-ARGS:SHOW show?)
-                        (update-gui!))]
-                     [parent (get-show-menu)]))
-          (update-gui!)
+          (define container (super get-definitions/interactions-panel-parent))
+          (new menu-item%
+               [label ""]
+               [demand-callback
+                (λ (self)
+                  (send self set-label
+                        (if show?
+                            "Hide Command-Line Arguments"
+                            "Show Command-Line Arguments")))]
+               [callback
+                (λ (c e)
+                  (set! show? (not show?))
+                  (preferences:set DRRACKET-CMDLINE-ARGS:SHOW show?)
+                  (update-gui! container))]
+               [parent (get-show-menu)])
+          (update-gui! container)
           container)))
 
     (define phase1 void)

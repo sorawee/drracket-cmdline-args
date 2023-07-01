@@ -4,7 +4,7 @@
                "shlex"
                "base"))
 (define build-deps '("scribble-lib" "racket-doc"))
-(define scribblings '(("scribblings/drracket-cmdline-args.scrbl" ())))
+(define scribblings '(("scribblings/drracket-cmdline-args.scrbl" () ("DrRacket Plugins"))))
 (define pkg-desc "Command-line arguments for DrRacket")
 (define version "0.0")
 (define pkg-authors '(sorawee))
